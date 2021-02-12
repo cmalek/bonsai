@@ -35,7 +35,7 @@ class AIOConnectionPool(ConnectionPool):
     :param int minconn: the minimum number of connections that's created
                 after the pool is opened.
     :param int maxconn: the maximum number of connections in the pool.
-    :param \*\*kwargs: additional keyword arguments that are passed to
+    :param \\*\\*kwargs: additional keyword arguments that are passed to
                 the :meth:`bonsai.LDAPClient.connect` method.
     :raises ValueError: when the minconn is negative or the maxconn is less
         than the minconn.
@@ -51,7 +51,12 @@ class AIOConnectionPool(ConnectionPool):
     ):
         super().__init__(client, minconn, maxconn, **kwargs)
         self._loop = loop
-        self._lock = asyncio.Condition(loop=self._loop)
+        try:
+            # The loop parameter is deprecated since 3.8, removed in 3.10
+            # and it raises TypeError.
+            self._lock = asyncio.Condition(loop=self._loop)
+        except TypeError:
+            self._lock = asyncio.Condition()
 
     async def open(self) -> None:
         async with self._lock:
